@@ -170,18 +170,6 @@ Also available as:
 mcp-stack init --detect
 ```
 
-### `completion [shell]`
-Generate shell completion scripts for bash or zsh.
-
-```bash
-mcp-stack completion bash  # Generate bash completions
-mcp-stack completion zsh   # Generate zsh completions
-
-# Installation - add to your shell config:
-eval "$(mcp-stack completion bash)"  # For bash
-eval "$(mcp-stack completion zsh)"   # For zsh
-```
-
 ## Contributing
 
 Contributions are welcome! Feel free to:

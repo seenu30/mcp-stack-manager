@@ -9,10 +9,9 @@ import { list, browseStacks } from './commands/list.js';
 import { detect } from './commands/detect.js';
 import { doctor } from './commands/doctor.js';
 import { update } from './commands/update.js';
-import { completion } from './commands/completion.js';
 
 const program = new Command();
-const VERSION = '0.1.4';
+const VERSION = '0.1.5';
 
 program
   .name('mcp-stack')
@@ -111,14 +110,6 @@ program
   .description('Check for new versions of mcp-stack')
   .action(async () => {
     await update();
-  });
-
-// completion command
-program
-  .command('completion [shell]')
-  .description('Generate shell completion scripts (beta)')
-  .action(async (shell?: string) => {
-    await completion(shell);
   });
 
 // Add header
