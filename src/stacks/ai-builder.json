@@ -1,0 +1,9 @@
+{
+  "name": "ai-builder",
+  "description": "AI builder stack with Context7, Supabase, and Vercel",
+  "mcps": ["context7", "supabase", "vercel"],
+  "detection": {
+    "files": ["next.config.js", "next.config.ts"],
+    "dependencies": ["ai", "openai", "@anthropic-ai/sdk"]
+  }
+}

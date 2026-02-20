@@ -1,0 +1,79 @@
+#!/usr/bin/env node
+
+import { Command } from 'commander';
+import chalk from 'chalk';
+import { init } from './commands/init.js';
+import { add, addMultiple } from './commands/add.js';
+import { list } from './commands/list.js';
+import { detect } from './commands/detect.js';
+import { doctor } from './commands/doctor.js';
+
+const program = new Command();
+
+program
+  .name('mcp-stack')
+  .description('MCP Stack Manager for Claude Code - manage MCP server configurations')
+  .version('0.1.0');
+
+// init command
+program
+  .command('init [stack]')
+  .description('Initialize MCP configuration with a stack template')
+  .option('-d, --detect', 'Auto-detect project type and suggest MCPs')
+  .option('-f, --force', 'Overwrite existing .mcp.json')
+  .action(async (stack: string | undefined, options: { detect?: boolean; force?: boolean }) => {
+    await init(stack, options);
+  });
+
+// add command
+program
+  .command('add <mcp...>')
+  .description('Add MCP(s) to the configuration')
+  .option('-f, --force', 'Overwrite if already configured')
+  .action(async (mcps: string[], options: { force?: boolean }) => {
+    if (mcps.length === 1) {
+      await add(mcps[0], options);
+    } else {
+      await addMultiple(mcps);
+    }
+  });
+
+// list command
+program
+  .command('list [type]')
+  .description('List available stacks, MCPs, or configured MCPs')
+  .addHelpText(
+    'after',
+    `
+Types:
+  stacks      List available stack templates
+  mcps        List all available MCPs
+  configured  List MCPs configured in this project
+  (none)      List all of the above
+`
+  )
+  .action(async (type?: string) => {
+    await list(type);
+  });
+
+// detect command
+program
+  .command('detect')
+  .description('Detect project type and suggest MCPs')
+  .action(async () => {
+    await detect();
+  });
+
+// doctor command
+program
+  .command('doctor')
+  .description('Check MCP configurations and validate connections')
+  .action(async () => {
+    await doctor();
+  });
+
+// Add header
+console.log(chalk.bold.cyan('\n  MCP Stack Manager v0.1.0\n'));
+
+// Parse and run
+program.parse();

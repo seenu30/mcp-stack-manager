@@ -1,0 +1,9 @@
+{
+  "name": "saas-ts",
+  "description": "SaaS stack for TypeScript projects with Supabase, Vercel, and GitHub",
+  "mcps": ["supabase", "vercel", "github"],
+  "detection": {
+    "files": ["next.config.js", "next.config.ts", "supabase/config.toml"],
+    "dependencies": ["@supabase/supabase-js", "next"]
+  }
+}

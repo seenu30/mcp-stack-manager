@@ -1,0 +1,9 @@
+{
+  "name": "automation",
+  "description": "Browser automation stack with Playwright, Puppeteer, and Chrome DevTools",
+  "mcps": ["playwright", "puppeteer", "chrome-devtools"],
+  "detection": {
+    "files": ["playwright.config.ts", "playwright.config.js"],
+    "dependencies": ["playwright", "@playwright/test", "puppeteer"]
+  }
+}
