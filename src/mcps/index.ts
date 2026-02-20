@@ -44,26 +44,42 @@ export function getMcpsWithRequiredEnv(): MCPDefinition[] {
 
 /**
  * Build a concrete MCP config from a definition
- * Expands environment variables in the config
+ * Expands environment variables in the config, with optional user-provided values taking precedence
  */
-export function buildMcpConfig(definition: MCPDefinition): MCPServerConfig {
+export function buildMcpConfig(
+  definition: MCPDefinition,
+  userValues?: Record<string, string>
+): MCPServerConfig {
   const config = { ...definition.config };
 
-  // Expand environment variables in args
+  // Helper to get value: user-provided first, then env var, then empty string
+  const getValue = (varName: string): string => {
+    return userValues?.[varName] || process.env[varName] || '';
+  };
+
+  // Helper to expand ${VAR} patterns in a string
+  const expandValue = (value: string): string => {
+    return value.replace(/\$\{([^}]+)\}/g, (_, expr) => {
+      const [varName, defaultValue] = expr.split(':-');
+      return getValue(varName) || defaultValue || '';
+    });
+  };
+
+  // Expand in args
   if (config.args) {
-    config.args = config.args.map(expandEnvVars);
+    config.args = config.args.map(expandValue);
   }
 
-  // Expand environment variables in env
+  // Expand in env
   if (config.env) {
     config.env = Object.fromEntries(
-      Object.entries(config.env).map(([key, value]) => [key, expandEnvVars(value)])
+      Object.entries(config.env).map(([key, value]) => [key, expandValue(value)])
     );
   }
 
-  // Expand environment variables in url
+  // Expand in url
   if (config.url) {
-    config.url = expandEnvVars(config.url);
+    config.url = expandValue(config.url);
   }
 
   return config;

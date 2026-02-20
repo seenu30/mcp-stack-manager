@@ -21,7 +21,8 @@ program
   .description('Initialize MCP configuration with a stack template')
   .option('-d, --detect', 'Auto-detect project type and suggest MCPs')
   .option('-f, --force', 'Overwrite existing .mcp.json')
-  .action(async (stack: string | undefined, options: { detect?: boolean; force?: boolean }) => {
+  .option('-s, --skip-prompts', 'Skip credential prompts (use env vars only)')
+  .action(async (stack: string | undefined, options: { detect?: boolean; force?: boolean; skipPrompts?: boolean }) => {
     await init(stack, options);
   });
 
@@ -30,11 +31,12 @@ program
   .command('add <mcp...>')
   .description('Add MCP(s) to the configuration')
   .option('-f, --force', 'Overwrite if already configured')
-  .action(async (mcps: string[], options: { force?: boolean }) => {
+  .option('-s, --skip-prompts', 'Skip credential prompts (use env vars only)')
+  .action(async (mcps: string[], options: { force?: boolean; skipPrompts?: boolean }) => {
     if (mcps.length === 1) {
       await add(mcps[0], options);
     } else {
-      await addMultiple(mcps);
+      await addMultiple(mcps, options);
     }
   });
 

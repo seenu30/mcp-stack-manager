@@ -11,6 +11,7 @@ import { MCPConfigFile } from '../types/index.js';
 interface InitOptions {
   detect?: boolean;
   force?: boolean;
+  skipPrompts?: boolean;
 }
 
 async function selectStack(): Promise<string | null> {
@@ -56,23 +57,65 @@ async function selectMcps(): Promise<string[]> {
   return selected;
 }
 
-async function promptForEnvVars(required: string[]): Promise<void> {
-  if (required.length === 0) return;
+/**
+ * Prompt for all required credentials across MCPs
+ */
+async function promptForAllCredentials(mcpNames: string[]): Promise<Record<string, string>> {
+  const values: Record<string, string> = {};
+  const allRequired = getRequiredEnvForMcps(mcpNames);
 
-  const { missing } = checkRequiredEnv(required);
+  if (allRequired.length === 0) return values;
 
-  if (missing.length === 0) {
-    console.log(chalk.green('\n✓ All required environment variables are set\n'));
-    return;
+  const { missing, present } = checkRequiredEnv(allRequired);
+
+  // Use existing env values
+  for (const envVar of present) {
+    values[envVar] = process.env[envVar]!;
   }
 
-  console.log(chalk.yellow('\nMissing environment variables:'));
-  for (const varName of missing) {
-    console.log(chalk.gray(`  - ${varName}`));
+  if (present.length > 0) {
+    console.log(chalk.green(`✓ Found in environment: ${present.join(', ')}`));
   }
 
-  console.log(chalk.gray('\nSet these in your environment or .env file before using Claude Code.'));
-  console.log(chalk.gray('The MCP servers will be configured to use these variables.\n'));
+  // Prompt for missing values, grouped by MCP
+  if (missing.length > 0) {
+    // Group vars by MCP for better UX
+    const mcpVars: Record<string, string[]> = {};
+    for (const mcpName of mcpNames) {
+      const mcp = getMcp(mcpName);
+      if (mcp?.requiredEnv) {
+        const mcpMissing = mcp.requiredEnv.filter((v) => missing.includes(v));
+        if (mcpMissing.length > 0) {
+          mcpVars[mcpName] = mcpMissing;
+        }
+      }
+    }
+
+    for (const [mcpName, vars] of Object.entries(mcpVars)) {
+      console.log(chalk.cyan(`\nConfigure ${mcpName}:\n`));
+
+      for (const envVar of vars) {
+        const isSecret =
+          envVar.includes('TOKEN') ||
+          envVar.includes('KEY') ||
+          envVar.includes('SECRET') ||
+          envVar.includes('PASSWORD');
+
+        const { value } = await inquirer.prompt([
+          {
+            type: isSecret ? 'password' : 'input',
+            name: 'value',
+            message: `${envVar}:`,
+            validate: (input: string) => input.length > 0 || 'Value is required',
+          },
+        ]);
+
+        values[envVar] = value;
+      }
+    }
+  }
+
+  return values;
 }
 
 export async function init(stackName?: string, options: InitOptions = {}): Promise<void> {
@@ -180,9 +223,11 @@ export async function init(stackName?: string, options: InitOptions = {}): Promi
     return;
   }
 
-  // Prompt for environment variables
-  const requiredEnv = getRequiredEnvForMcps(mcpsToAdd);
-  await promptForEnvVars(requiredEnv);
+  // Prompt for credentials
+  let userValues: Record<string, string> = {};
+  if (!options.skipPrompts) {
+    userValues = await promptForAllCredentials(mcpsToAdd);
+  }
 
   // Build the config
   const spinner = ora('Writing .mcp.json...').start();
@@ -196,7 +241,7 @@ export async function init(stackName?: string, options: InitOptions = {}): Promi
     for (const mcpName of mcpsToAdd) {
       const mcp = getMcp(mcpName);
       if (mcp) {
-        config.mcpServers[mcpName] = buildMcpConfig(mcp);
+        config.mcpServers[mcpName] = buildMcpConfig(mcp, userValues);
       }
     }
 
