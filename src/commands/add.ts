@@ -114,6 +114,14 @@ export async function add(mcpName: string, options: AddOptions = {}): Promise<vo
     const config = buildMcpConfig(mcp, userValues);
     await addMcpToConfig(mcpName, config);
     spinner.succeed(chalk.green(`Added ${mcpName} to .mcp.json`));
+
+    // Show setup hint if available (for browser auth, etc.)
+    if (mcp.setupHint) {
+      console.log(chalk.cyan(`\n${mcp.setupHint}`));
+    }
+
+    // Verification hint
+    console.log(chalk.gray(`\nVerify: Run \`claude mcp list\` in CLI or \`/mcp\` in Claude Code`));
   } catch (error) {
     spinner.fail(chalk.red(`Failed to add ${mcpName}`));
     console.error(error);
@@ -141,10 +149,16 @@ export async function addMultiple(mcpNames: string[], options: AddOptions = {}):
       const config = buildMcpConfig(mcp, allValues);
       await addMcpToConfig(name, config);
       spinner.succeed(chalk.green(`Added ${name}`));
+
+      // Show setup hint if available
+      if (mcp.setupHint) {
+        console.log(chalk.cyan(`  ${mcp.setupHint}`));
+      }
     } catch (error) {
       spinner.fail(chalk.red(`Failed to add ${name}`));
     }
   }
 
-  console.log(chalk.green('\nDone! Run `mcp-stack doctor` to verify connections.\n'));
+  console.log(chalk.gray('\nVerify: Run `claude mcp list` in CLI or `/mcp` in Claude Code'));
+  console.log(chalk.gray('Health check: Run `mcp-stack doctor` to verify connections\n'));
 }

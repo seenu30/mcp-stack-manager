@@ -36,6 +36,7 @@ export interface MCPDefinition {
   requiredEnv?: string[];
   optionalEnv?: string[];
   envHints?: Record<string, string>; // Hints for where to find each credential
+  setupHint?: string; // Hint shown after adding (for browser auth, etc.)
   validate?: () => Promise<ValidationResult>;
 }
 

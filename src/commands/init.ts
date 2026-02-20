@@ -263,11 +263,25 @@ export async function init(stackName?: string, options: InitOptions = {}): Promi
     spinner.succeed(chalk.green('Created .mcp.json'));
 
     console.log(chalk.bold('\nAdded MCPs:'));
+    const setupHints: string[] = [];
     for (const name of mcpsToAdd) {
       console.log(chalk.green(`  ✓ ${name}`));
+      const mcp = getMcp(name);
+      if (mcp?.setupHint) {
+        setupHints.push(`${name}: ${mcp.setupHint}`);
+      }
     }
 
-    console.log(chalk.gray('\nRun `mcp-stack doctor` to verify connections.\n'));
+    // Show setup hints if any
+    if (setupHints.length > 0) {
+      console.log(chalk.bold('\nSetup required:'));
+      for (const hint of setupHints) {
+        console.log(chalk.cyan(`  ${hint}`));
+      }
+    }
+
+    console.log(chalk.gray('\nVerify: Run `claude mcp list` in CLI or `/mcp` in Claude Code'));
+    console.log(chalk.gray('Health check: Run `mcp-stack doctor` to verify connections\n'));
   } catch (error) {
     spinner.fail(chalk.red('Failed to write .mcp.json'));
     console.error(error);

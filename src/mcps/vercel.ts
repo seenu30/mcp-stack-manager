@@ -8,6 +8,7 @@ export const vercel: MCPDefinition = {
     url: 'https://mcp.vercel.com',
   },
   requiredEnv: [],
+  setupHint: 'Auth: Run /mcp in Claude Code → Select vercel → Authenticate (opens browser)',
   validate: async (): Promise<ValidationResult> => {
     // HTTP MCPs authenticate via the browser, we can only check if the endpoint is reachable
     try {
