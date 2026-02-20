@@ -23,11 +23,15 @@
     "cli",
     "developer-tools"
   ],
-  "author": "",
+  "author": "seenu30",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/seenu30/mcp-stack-manager.git"
+  },
+  "homepage": "https://github.com/seenu30/mcp-stack-manager#readme",
+  "bugs": {
+    "url": "https://github.com/seenu30/mcp-stack-manager/issues"
   },
   "engines": {
     "node": ">=18.0.0"

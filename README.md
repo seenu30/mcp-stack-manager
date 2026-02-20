@@ -1,17 +1,19 @@
-# MCP Stack Manager
+# mcp-stack
 
-A CLI tool for managing MCP (Model Context Protocol) server configurations for Claude Code. Initialize projects with pre-configured stack templates, auto-detect project types, and validate your MCP connections.
+A CLI tool for managing MCP (Model Context Protocol) server configurations in Claude Code. Define reusable stack templates and quickly configure MCPs for your projects.
+
+## Features
+
+- **Stack Templates** - Pre-configured MCP bundles for common workflows (SaaS, automation, AI apps)
+- **Interactive Setup** - Guided credential prompts with hints for where to find each value
+- **Project Detection** - Auto-detect project type and suggest relevant MCPs
+- **Health Checks** - Validate MCP configurations and test connections
+- **Simple CLI** - Add, remove, and manage MCPs with intuitive commands
 
 ## Installation
 
 ```bash
 npm install -g mcp-stack
-```
-
-Or use npx:
-
-```bash
-npx mcp-stack init
 ```
 
 ## Quick Start
@@ -20,135 +22,139 @@ npx mcp-stack init
 # Initialize with a stack template
 mcp-stack init saas-ts
 
-# Or auto-detect your project
-mcp-stack init --detect
-
-# Or select interactively
+# Or interactively select MCPs
 mcp-stack init
+
+# Add individual MCPs
+mcp-stack add github
+mcp-stack add supabase vercel
+
+# Check configuration health
+mcp-stack doctor
 ```
 
 ## Commands
 
-### `mcp-stack init [stack]`
-
-Initialize MCP configuration with a stack template or interactively.
+### `init [stack]`
+Initialize MCP configuration with a stack template.
 
 ```bash
-mcp-stack init              # Interactive mode
-mcp-stack init saas-ts      # Use saas-ts stack
+mcp-stack init              # Interactive stack selection
+mcp-stack init saas-ts      # Use specific stack
 mcp-stack init --detect     # Auto-detect project type
 mcp-stack init --force      # Overwrite existing config
 ```
 
-### `mcp-stack add <mcp...>`
-
-Add individual MCP(s) to your configuration.
+### `add [mcp...]`
+Add MCP(s) to the configuration.
 
 ```bash
-mcp-stack add playwright
-mcp-stack add supabase vercel github
+mcp-stack add               # Interactive MCP selection
+mcp-stack add github        # Add single MCP
+mcp-stack add github vercel # Add multiple MCPs
+mcp-stack add --force       # Overwrite if already configured
 ```
 
-### `mcp-stack list [type]`
+### `remove [mcp]`
+Remove MCP(s) from the configuration.
 
+```bash
+mcp-stack remove            # Interactive removal
+mcp-stack remove github     # Remove specific MCP
+mcp-stack remove --all      # Remove all MCPs
+mcp-stack remove --stack saas-ts  # Remove all MCPs from a stack
+```
+
+### `list [type]`
 List available stacks, MCPs, or configured MCPs.
 
 ```bash
-mcp-stack list           # Show everything
-mcp-stack list stacks    # Show stack templates
-mcp-stack list mcps      # Show available MCPs
-mcp-stack list configured # Show configured MCPs
+mcp-stack list              # List everything
+mcp-stack list stacks       # List stack templates
+mcp-stack list mcps         # List all available MCPs
+mcp-stack list configured   # List MCPs in current project
 ```
 
-### `mcp-stack detect`
+### `stacks`
+Interactive stack browser - select a stack to view its MCPs.
 
-Detect your project type and get MCP suggestions.
+```bash
+mcp-stack stacks
+```
+
+### `detect`
+Detect project type and suggest MCPs based on your codebase.
 
 ```bash
 mcp-stack detect
 ```
 
-### `mcp-stack doctor`
-
-Check your MCP configurations and validate connections.
+### `doctor`
+Check MCP configurations and validate connections.
 
 ```bash
 mcp-stack doctor
 ```
 
-## Stack Templates
+## Available Stacks
 
-### saas-ts
-
-SaaS stack for TypeScript projects.
-
-- supabase
-- vercel
-- github
-
-### automation
-
-Browser automation stack.
-
-- playwright
-- puppeteer
-- chrome-devtools
-
-### ai-builder
-
-AI builder stack.
-
-- context7
-- supabase
-- vercel
+| Stack | Description | MCPs |
+|-------|-------------|------|
+| `saas-ts` | SaaS stack for TypeScript projects | supabase, vercel, github |
+| `automation` | Browser automation stack | playwright, puppeteer, chrome-devtools |
+| `ai-builder` | AI builder stack | context7, supabase, vercel |
 
 ## Available MCPs
 
-| MCP | Description | Required Env |
-|-----|-------------|--------------|
-| supabase | Supabase database and auth | `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN` |
-| vercel | Vercel deployment | None (browser auth) |
-| github | GitHub repository operations | `GITHUB_TOKEN` |
-| playwright | Browser automation | None |
-| puppeteer | Browser automation | None |
-| chrome-devtools | Browser debugging | None |
-| context7 | Documentation lookup | None |
+| MCP | Description | Credentials |
+|-----|-------------|-------------|
+| `github` | GitHub repository operations | `GITHUB_TOKEN` |
+| `supabase` | Supabase database and auth | `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN` |
+| `vercel` | Vercel deployments | Browser auth |
+| `context7` | Documentation and context lookup | Browser auth (API key optional) |
+| `playwright` | Browser automation with Playwright | None |
+| `puppeteer` | Browser automation with Puppeteer | None |
+| `chrome-devtools` | Chrome DevTools Protocol | None |
 
-## Environment Variables
+## Configuration
 
-Some MCPs require environment variables. Set them before running Claude Code:
+mcp-stack creates a `.mcp.json` file in your project root. This file is automatically read by Claude Code.
 
-```bash
-export SUPABASE_PROJECT_REF=your-project-ref
-export SUPABASE_ACCESS_TOKEN=your-access-token
-export GITHUB_TOKEN=your-github-token
-```
-
-Or add them to a `.env` file in your project root.
-
-## Output
-
-The tool generates a `.mcp.json` file in your project root:
-
+Example `.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "supabase": {
+    "github": {
       "command": "npx",
-      "args": ["-y", "@supabase/mcp-server-supabase@latest", "--project-ref=..."],
+      "args": ["-y", "@modelcontextprotocol/server-github"],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "..."
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "ghp_xxxxxxxxxxxx"
       }
     },
-    "vercel": {
+    "context7": {
       "type": "http",
-      "url": "https://mcp.vercel.com"
+      "url": "https://mcp.context7.com/mcp"
     }
   }
 }
 ```
 
-This file is read by Claude Code to configure MCP servers.
+## Verifying Setup
+
+After configuration, verify your MCPs are working:
+
+1. **In Claude Code CLI**: Run `claude mcp list`
+2. **In Claude Code IDE**: Type `/mcp` to see MCP status
+3. **With mcp-stack**: Run `mcp-stack doctor`
+
+## Contributing
+
+Contributions are welcome! Feel free to:
+
+- Add new MCP definitions
+- Create new stack templates
+- Improve detection rules
+- Fix bugs or improve documentation
 
 ## License
 
