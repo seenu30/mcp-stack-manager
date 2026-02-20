@@ -13,61 +13,133 @@ interface AddOptions {
 }
 
 /**
- * Prompt user for required credentials with hints and override option
+ * Prompt user for required and optional credentials with hints
  */
 async function promptForCredentials(mcp: MCPDefinition): Promise<Record<string, string>> {
   const values: Record<string, string> = {};
+  const hasRequired = mcp.requiredEnv && mcp.requiredEnv.length > 0;
+  const hasOptional = mcp.optionalEnv && mcp.optionalEnv.length > 0;
 
-  if (!mcp.requiredEnv?.length) return values;
+  if (!hasRequired && !hasOptional) return values;
 
   console.log(chalk.cyan(`\nConfigure ${mcp.name}:\n`));
 
-  for (const envVar of mcp.requiredEnv) {
-    const hint = mcp.envHints?.[envVar];
-    const existingValue = process.env[envVar];
-    const isSecret = envVar.includes('TOKEN') || envVar.includes('KEY') || envVar.includes('SECRET') || envVar.includes('PASSWORD');
+  // Prompt for required env vars
+  if (hasRequired) {
+    for (const envVar of mcp.requiredEnv!) {
+      const hint = mcp.envHints?.[envVar];
+      const existingValue = process.env[envVar];
+      const isSecret = envVar.includes('TOKEN') || envVar.includes('KEY') || envVar.includes('SECRET') || envVar.includes('PASSWORD');
 
-    // Show variable name
-    console.log(chalk.white.bold(`  ${envVar}`));
+      // Show variable name
+      console.log(chalk.white.bold(`  ${envVar}`));
 
-    // Show hint if available
-    if (hint) {
-      console.log(chalk.gray(`  Hint: ${hint}`));
-    }
+      // Show hint if available
+      if (hint) {
+        console.log(chalk.gray(`  Hint: ${hint}`));
+      }
 
-    if (existingValue) {
-      // Show masked existing value and ask to use or override
-      const masked = maskValue(existingValue);
-      console.log(chalk.green(`  Found in environment: ${masked}`));
+      if (existingValue) {
+        // Show masked existing value and ask to use or override
+        const masked = maskValue(existingValue);
+        console.log(chalk.green(`  Found in environment: ${masked}`));
 
-      const { useExisting } = await inquirer.prompt([
+        const { useExisting } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'useExisting',
+            message: 'Use this value for this project?',
+            default: true,
+          },
+        ]);
+
+        if (useExisting) {
+          values[envVar] = existingValue;
+          console.log();
+          continue;
+        }
+      }
+
+      // Prompt for new value
+      const { value } = await inquirer.prompt([
         {
-          type: 'confirm',
-          name: 'useExisting',
-          message: 'Use this value for this project?',
-          default: true,
+          type: isSecret ? 'password' : 'input',
+          name: 'value',
+          message: 'Enter value:',
+          validate: (input: string) => input.length > 0 || 'Value is required',
         },
       ]);
 
-      if (useExisting) {
-        values[envVar] = existingValue;
+      values[envVar] = value;
+      console.log();
+    }
+  }
+
+  // Prompt for optional env vars
+  if (hasOptional) {
+    for (const envVar of mcp.optionalEnv!) {
+      const hint = mcp.envHints?.[envVar];
+      const existingValue = process.env[envVar];
+      const isSecret = envVar.includes('TOKEN') || envVar.includes('KEY') || envVar.includes('SECRET') || envVar.includes('PASSWORD');
+
+      // Show variable name with (optional) label
+      console.log(chalk.white.bold(`  ${envVar}`) + chalk.gray(' (optional)'));
+
+      // Show hint if available
+      if (hint) {
+        console.log(chalk.gray(`  Hint: ${hint}`));
+      }
+
+      if (existingValue) {
+        // Show masked existing value and ask to use or override
+        const masked = maskValue(existingValue);
+        console.log(chalk.green(`  Found in environment: ${masked}`));
+
+        const { useExisting } = await inquirer.prompt([
+          {
+            type: 'confirm',
+            name: 'useExisting',
+            message: 'Use this value for this project?',
+            default: true,
+          },
+        ]);
+
+        if (useExisting) {
+          values[envVar] = existingValue;
+          console.log();
+          continue;
+        }
+      }
+
+      // Ask if they want to provide this optional value
+      const { wantToProvide } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'wantToProvide',
+          message: 'Do you want to provide a value?',
+          default: false,
+        },
+      ]);
+
+      if (!wantToProvide) {
         console.log();
         continue;
       }
+
+      // Prompt for value
+      const { value } = await inquirer.prompt([
+        {
+          type: isSecret ? 'password' : 'input',
+          name: 'value',
+          message: 'Enter value:',
+        },
+      ]);
+
+      if (value) {
+        values[envVar] = value;
+      }
+      console.log();
     }
-
-    // Prompt for new value
-    const { value } = await inquirer.prompt([
-      {
-        type: isSecret ? 'password' : 'input',
-        name: 'value',
-        message: 'Enter value:',
-        validate: (input: string) => input.length > 0 || 'Value is required',
-      },
-    ]);
-
-    values[envVar] = value;
-    console.log();
   }
 
   return values;
@@ -152,7 +224,7 @@ export async function add(mcpName: string, options: AddOptions = {}): Promise<vo
   // Prompt for credentials (or skip if --skip-prompts)
   let userValues: Record<string, string> = {};
 
-  if (!options.skipPrompts && mcp.requiredEnv && mcp.requiredEnv.length > 0) {
+  if (!options.skipPrompts && ((mcp.requiredEnv && mcp.requiredEnv.length > 0) || (mcp.optionalEnv && mcp.optionalEnv.length > 0))) {
     userValues = await promptForCredentials(mcp);
   }
 
@@ -188,7 +260,7 @@ export async function addMultiple(mcpNames: string[], options: AddOptions = {}):
     const mcp = getMcp(name);
     if (!mcp) continue;
 
-    if (!options.skipPrompts && mcp.requiredEnv?.length) {
+    if (!options.skipPrompts && (mcp.requiredEnv?.length || mcp.optionalEnv?.length)) {
       const values = await promptForCredentials(mcp);
       Object.assign(allValues, values);
     }

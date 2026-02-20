@@ -82,6 +82,13 @@ export function buildMcpConfig(
     config.url = expandValue(config.url);
   }
 
+  // Expand in headers
+  if (config.headers) {
+    config.headers = Object.fromEntries(
+      Object.entries(config.headers).map(([key, value]) => [key, expandValue(value)])
+    );
+  }
+
   return config;
 }
 

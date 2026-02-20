@@ -6,8 +6,15 @@ export const context7: MCPDefinition = {
   config: {
     type: 'http',
     url: 'https://mcp.context7.com/mcp',
+    headers: {
+      'CONTEXT7_API_KEY': '${CONTEXT7_API_KEY}',
+    },
   },
   requiredEnv: [],
+  optionalEnv: ['CONTEXT7_API_KEY'],
+  envHints: {
+    CONTEXT7_API_KEY: 'Get a free API key at https://context7.com/dashboard for higher rate limits',
+  },
   validate: async (): Promise<ValidationResult> => {
     // HTTP MCPs authenticate via the browser, we can only check if the endpoint is reachable
     try {
