@@ -73,27 +73,22 @@ export async function doctor(): Promise<void> {
       result.checks.push({
         name: 'Browser auth',
         passed: true,
-        message: 'Required (run /mcp in Claude Code to authenticate)',
+        message: 'Run /mcp in Claude Code to authenticate',
       });
     }
 
-    // Check 4: Optional environment variables
+    // Check 4: Optional credentials (check from actual config)
+    const mcpConfig = config.mcpServers[mcpName];
     if (mcp.optionalEnv && mcp.optionalEnv.length > 0) {
-      const configured = mcp.optionalEnv.filter(v => process.env[v]);
-      const notConfigured = mcp.optionalEnv.filter(v => !process.env[v]);
+      for (const envVar of mcp.optionalEnv) {
+        // Check if value is set in config headers or env
+        const headerValue = mcpConfig.headers?.[envVar];
+        const isConfigured = headerValue && headerValue.length > 0;
 
-      if (configured.length > 0) {
         result.checks.push({
-          name: 'Optional',
+          name: 'API Key',
           passed: true,
-          message: `${configured.join(', ')} (configured)`,
-        });
-      }
-      if (notConfigured.length > 0) {
-        result.checks.push({
-          name: 'Optional',
-          passed: true,
-          message: `${notConfigured.join(', ')} (not set)`,
+          message: isConfigured ? 'configured' : 'not set (optional)',
         });
       }
     }
