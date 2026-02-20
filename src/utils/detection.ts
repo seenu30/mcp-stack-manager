@@ -4,12 +4,17 @@ import { DetectionRule } from '../types/index.js';
 
 // Detection rules for suggesting MCPs
 const detectionRules: DetectionRule[] = [
-  // Vercel
+  // Vercel - Next.js, Remix, Astro, SvelteKit, Nuxt
   { files: ['next.config.js', 'next.config.ts', 'next.config.mjs', 'vercel.json'], suggest: ['vercel'] },
+  { files: ['remix.config.js', 'remix.config.ts'], suggest: ['vercel'] },
+  { files: ['astro.config.mjs', 'astro.config.ts'], suggest: ['vercel'] },
+  { files: ['svelte.config.js'], suggest: ['vercel'] },
+  { files: ['nuxt.config.ts', 'nuxt.config.js'], suggest: ['vercel'] },
+  { dependencies: ['next', '@remix-run/react', 'astro', '@sveltejs/kit', 'nuxt'], suggest: ['vercel'] },
 
   // Supabase
   { files: ['supabase/config.toml', 'supabase/.gitignore'], suggest: ['supabase'] },
-  { dependencies: ['@supabase/supabase-js', '@supabase/ssr'], suggest: ['supabase'] },
+  { dependencies: ['@supabase/supabase-js', '@supabase/ssr', '@supabase/auth-helpers-nextjs'], suggest: ['supabase'] },
 
   // Playwright
   { files: ['playwright.config.ts', 'playwright.config.js'], suggest: ['playwright'] },
@@ -19,11 +24,15 @@ const detectionRules: DetectionRule[] = [
   { files: ['puppeteer.config.js', 'puppeteer.config.ts'], suggest: ['puppeteer'] },
   { dependencies: ['puppeteer', 'puppeteer-core'], suggest: ['puppeteer'] },
 
-  // GitHub
-  { files: ['.github/workflows', '.github'], suggest: ['github'] },
+  // GitHub - Git repo or workflows
+  { files: ['.github/workflows', '.github', '.git'], suggest: ['github'] },
 
-  // Chrome DevTools (often used with puppeteer/playwright)
-  { dependencies: ['puppeteer', 'playwright'], suggest: ['chrome-devtools'] },
+  // Context7 - Documentation-heavy projects
+  { files: ['docs', 'documentation', 'wiki', 'API.md', 'ARCHITECTURE.md'], suggest: ['context7'] },
+  { dependencies: ['typedoc', 'jsdoc', 'docusaurus', 'vitepress', 'nextra'], suggest: ['context7'] },
+
+  // TypeScript projects - suggest github for version control
+  { files: ['tsconfig.json'], suggest: ['github'] },
 ];
 
 /**
@@ -106,21 +115,35 @@ export async function detectProjectMcps(dir: string = process.cwd()): Promise<{
 
 /**
  * Suggest a stack based on detected MCPs
+ * Uses scoring to pick the best matching stack
  */
 export function suggestStack(detectedMcps: string[]): string | null {
   const has = (mcp: string) => detectedMcps.includes(mcp);
+  const count = (...mcps: string[]) => mcps.filter(has).length;
 
-  // SaaS stack: supabase + vercel
+  // Fullstack: supabase + vercel + (playwright OR github) + context7
+  // Most comprehensive - prioritize if many matches
+  const fullstackScore = count('supabase', 'vercel', 'github', 'context7', 'playwright');
+  if (fullstackScore >= 4) {
+    return 'fullstack';
+  }
+
+  // SaaS stack: supabase + vercel (+ github)
   if (has('supabase') && has('vercel')) {
     return 'saas-ts';
   }
 
-  // Automation stack: playwright or puppeteer
-  if (has('playwright') || has('puppeteer')) {
+  // Automation stack: playwright or puppeteer (browser automation focus)
+  if ((has('playwright') || has('puppeteer')) && !has('supabase') && !has('vercel')) {
     return 'automation';
   }
 
-  // AI builder: vercel or supabase alone
+  // AI builder: context7 + (vercel OR supabase)
+  if (has('context7') && (has('vercel') || has('supabase'))) {
+    return 'ai-builder';
+  }
+
+  // Fallback to ai-builder for single vercel/supabase
   if (has('vercel') || has('supabase')) {
     return 'ai-builder';
   }

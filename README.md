@@ -88,6 +88,13 @@ Check MCP configurations and validate connections.
 mcp-stack doctor
 ```
 
+### `update`
+Check for new versions of mcp-stack.
+
+```bash
+mcp-stack update
+```
+
 ## Available Stacks
 
 | Stack | Description | MCPs |
@@ -161,6 +168,18 @@ mcp-stack detect
 Also available as:
 ```bash
 mcp-stack init --detect
+```
+
+### `completion [shell]`
+Generate shell completion scripts for bash or zsh.
+
+```bash
+mcp-stack completion bash  # Generate bash completions
+mcp-stack completion zsh   # Generate zsh completions
+
+# Installation - add to your shell config:
+eval "$(mcp-stack completion bash)"  # For bash
+eval "$(mcp-stack completion zsh)"   # For zsh
 ```
 
 ## Contributing

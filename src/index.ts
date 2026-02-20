@@ -8,6 +8,8 @@ import { remove, removeAll, removeStack } from './commands/remove.js';
 import { list, browseStacks } from './commands/list.js';
 import { detect } from './commands/detect.js';
 import { doctor } from './commands/doctor.js';
+import { update } from './commands/update.js';
+import { completion } from './commands/completion.js';
 
 const program = new Command();
 const VERSION = '0.1.3';
@@ -101,6 +103,22 @@ program
   .description('Check MCP configurations and validate connections')
   .action(async () => {
     await doctor();
+  });
+
+// update command
+program
+  .command('update')
+  .description('Check for new versions of mcp-stack')
+  .action(async () => {
+    await update();
+  });
+
+// completion command
+program
+  .command('completion [shell]')
+  .description('Generate shell completion scripts (beta)')
+  .action(async (shell?: string) => {
+    await completion(shell);
   });
 
 // Add header
