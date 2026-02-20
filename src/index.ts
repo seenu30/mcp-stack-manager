@@ -4,7 +4,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { init } from './commands/init.js';
 import { add, addMultiple } from './commands/add.js';
-import { remove, removeAll } from './commands/remove.js';
+import { remove, removeAll, removeStack } from './commands/remove.js';
 import { list } from './commands/list.js';
 import { detect } from './commands/detect.js';
 import { doctor } from './commands/doctor.js';
@@ -46,10 +46,15 @@ program
   .command('remove [mcp]')
   .description('Remove MCP(s) from the configuration')
   .option('-a, --all', 'Remove all configured MCPs')
+  .option('-s, --stack [name]', 'Remove all MCPs from a stack')
   .option('-f, --force', 'Skip confirmation prompt')
-  .action(async (mcp: string | undefined, options: { all?: boolean; force?: boolean }) => {
+  .action(async (mcp: string | undefined, options: { all?: boolean; stack?: string | boolean; force?: boolean }) => {
     if (options.all) {
       await removeAll(options);
+    } else if (options.stack !== undefined) {
+      // --stack was used, value is true if no name provided, or the stack name
+      const stackName = typeof options.stack === 'string' ? options.stack : undefined;
+      await removeStack(stackName, options);
     } else {
       await remove(mcp, options);
     }

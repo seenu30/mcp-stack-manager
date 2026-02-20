@@ -2,9 +2,11 @@ import chalk from 'chalk';
 import inquirer from 'inquirer';
 import ora from 'ora';
 import { getConfiguredMcps, removeMcpFromConfig, configExists } from '../utils/config.js';
+import { getStack, getAllStacks } from '../stacks/index.js';
 
 interface RemoveOptions {
   force?: boolean;
+  stack?: string | boolean;
 }
 
 export async function remove(mcpName: string | undefined, options: RemoveOptions): Promise<void> {
@@ -124,6 +126,87 @@ export async function removeAll(options: RemoveOptions): Promise<void> {
     console.log(chalk.gray(`\nVerify: Run \`claude mcp list\` in CLI or \`/mcp\` in Claude Code`));
   } catch (error) {
     spinner.fail(chalk.red('Failed to remove MCPs'));
+    console.error(error);
+    process.exit(1);
+  }
+}
+
+export async function removeStack(stackName: string | undefined, options: RemoveOptions): Promise<void> {
+  // Check if config exists
+  if (!(await configExists())) {
+    console.log(chalk.yellow('\nNo .mcp.json found in current directory.\n'));
+    process.exit(1);
+  }
+
+  let selectedStack = stackName;
+
+  // If no stack name provided, show interactive selection
+  if (!selectedStack) {
+    const stacks = getAllStacks();
+    const { selected } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'selected',
+        message: 'Select stack to remove:',
+        choices: stacks.map((s) => ({
+          name: `${s.name} - ${s.description}`,
+          value: s.name,
+        })),
+      },
+    ]);
+    selectedStack = selected;
+  }
+
+  // Get the stack
+  const stack = getStack(selectedStack!);
+  if (!stack) {
+    console.log(chalk.red(`\nStack "${selectedStack}" not found.`));
+    console.log(chalk.gray('Run `mcp-stack list stacks` to see available stacks.\n'));
+    process.exit(1);
+  }
+
+  // Get configured MCPs and find which ones from the stack are configured
+  const configuredMcps = await getConfiguredMcps();
+  const mcpsToRemove = stack.mcps.filter((mcp) => configuredMcps.includes(mcp));
+
+  if (mcpsToRemove.length === 0) {
+    console.log(chalk.yellow(`\nNo MCPs from stack "${selectedStack}" are configured.`));
+    console.log(chalk.gray(`Stack MCPs: ${stack.mcps.join(', ')}`));
+    console.log(chalk.gray(`Configured MCPs: ${configuredMcps.join(', ') || 'none'}\n`));
+    process.exit(0);
+  }
+
+  // Confirm removal unless --force
+  if (!options.force) {
+    console.log(chalk.yellow(`\nThis will remove ${mcpsToRemove.length} MCP(s) from stack "${selectedStack}":`));
+    mcpsToRemove.forEach((name) => console.log(chalk.gray(`  - ${name}`)));
+
+    const { confirm } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure?',
+        default: false,
+      },
+    ]);
+
+    if (!confirm) {
+      console.log(chalk.gray('\nCancelled.\n'));
+      process.exit(0);
+    }
+  }
+
+  // Remove MCPs from the stack
+  const spinner = ora(`Removing stack "${selectedStack}"...`).start();
+
+  try {
+    for (const name of mcpsToRemove) {
+      await removeMcpFromConfig(name);
+    }
+    spinner.succeed(chalk.green(`Removed ${mcpsToRemove.length} MCP(s) from stack "${selectedStack}"`));
+    console.log(chalk.gray(`\nVerify: Run \`claude mcp list\` in CLI or \`/mcp\` in Claude Code`));
+  } catch (error) {
+    spinner.fail(chalk.red(`Failed to remove stack "${selectedStack}"`));
     console.error(error);
     process.exit(1);
   }
