@@ -120,6 +120,13 @@ mcp-stack doctor
 
 mcp-stack creates a `.mcp.json` file in your project root. This file is automatically read by Claude Code.
 
+> **Warning: Add `.mcp.json` to your `.gitignore`!**
+>
+> The `.mcp.json` file may contain API keys and credentials. Never commit it to version control.
+> ```bash
+> echo ".mcp.json" >> .gitignore
+> ```
+
 Example `.mcp.json`:
 ```json
 {

@@ -14,7 +14,7 @@ const program = new Command();
 program
   .name('mcp-stack')
   .description('MCP Stack Manager for Claude Code - manage MCP server configurations')
-  .version('0.1.0');
+  .version('0.1.1');
 
 // init command
 program

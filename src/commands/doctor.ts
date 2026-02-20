@@ -3,7 +3,39 @@ import ora from 'ora';
 import { readConfig } from '../utils/config.js';
 import { getMcp } from '../mcps/index.js';
 import { checkRequiredEnv } from '../utils/env.js';
-import { DoctorCheckResult } from '../types/index.js';
+import { DoctorCheckResult, MCPServerConfig } from '../types/index.js';
+
+/**
+ * Check if credentials are configured in the MCP config (not just env vars)
+ * Returns true if the config has actual values (not ${VAR} templates)
+ */
+function hasConfiguredCredentials(mcpConfig: MCPServerConfig): boolean {
+  // Check env object for non-template values
+  if (mcpConfig.env) {
+    for (const value of Object.values(mcpConfig.env)) {
+      if (value && value.length > 0 && !value.includes('${')) {
+        return true;
+      }
+    }
+  }
+  // Check args for values like --project-ref=xxx (not templates)
+  if (mcpConfig.args) {
+    for (const arg of mcpConfig.args) {
+      if (arg.includes('=') && !arg.includes('${')) {
+        return true;
+      }
+    }
+  }
+  // Check headers for non-template values
+  if (mcpConfig.headers) {
+    for (const value of Object.values(mcpConfig.headers)) {
+      if (value && value.length > 0 && !value.includes('${')) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 
 export async function doctor(): Promise<void> {
   console.log(chalk.bold('\nMCP Stack Manager - Doctor\n'));
@@ -42,23 +74,36 @@ export async function doctor(): Promise<void> {
       continue;
     }
 
-    // Check 2: Environment variables (required)
+    // Check 2: Credentials (check config values first, then env vars)
+    const mcpConfig = config.mcpServers[mcpName];
     if (mcp.requiredEnv && mcp.requiredEnv.length > 0) {
-      const { missing, present } = checkRequiredEnv(mcp.requiredEnv);
+      // First check if credentials are configured in .mcp.json
+      const hasConfigCreds = hasConfiguredCredentials(mcpConfig);
 
-      if (missing.length > 0) {
-        result.status = 'error';
-        result.checks.push({
-          name: 'Credentials',
-          passed: false,
-          message: `Missing: ${missing.join(', ')}`,
-        });
-      } else {
+      if (hasConfigCreds) {
         result.checks.push({
           name: 'Credentials',
           passed: true,
-          message: `All required set (${present.join(', ')})`,
+          message: 'Configured in .mcp.json',
         });
+      } else {
+        // Fall back to checking environment variables
+        const { missing, present } = checkRequiredEnv(mcp.requiredEnv);
+
+        if (missing.length > 0) {
+          result.status = 'error';
+          result.checks.push({
+            name: 'Credentials',
+            passed: false,
+            message: `Missing: ${missing.join(', ')}`,
+          });
+        } else {
+          result.checks.push({
+            name: 'Credentials',
+            passed: true,
+            message: `All required set (${present.join(', ')})`,
+          });
+        }
       }
     } else if (!mcp.setupHint) {
       result.checks.push({
@@ -78,7 +123,6 @@ export async function doctor(): Promise<void> {
     }
 
     // Check 4: Optional credentials (check from actual config)
-    const mcpConfig = config.mcpServers[mcpName];
     if (mcp.optionalEnv && mcp.optionalEnv.length > 0) {
       for (const envVar of mcp.optionalEnv) {
         // Check if value is set in config headers or env

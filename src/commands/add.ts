@@ -240,6 +240,9 @@ export async function add(mcpName: string, options: AddOptions = {}): Promise<vo
       console.log(chalk.cyan(`\n${mcp.setupHint}`));
     }
 
+    // Security warning
+    console.log(chalk.yellow(`\n⚠️  Security: Add .mcp.json to your .gitignore (contains credentials)`));
+
     // Verification hint
     console.log(chalk.gray(`\nVerify: Run \`claude mcp list\` in CLI or \`/mcp\` in Claude Code`));
   } catch (error) {
@@ -278,6 +281,9 @@ export async function addMultiple(mcpNames: string[], options: AddOptions = {}):
       spinner.fail(chalk.red(`Failed to add ${name}`));
     }
   }
+
+  // Security warning
+  console.log(chalk.yellow('\n⚠️  Security: Add .mcp.json to your .gitignore (contains credentials)'));
 
   console.log(chalk.gray('\nVerify: Run `claude mcp list` in CLI or `/mcp` in Claude Code'));
   console.log(chalk.gray('Health check: Run `mcp-stack doctor` to verify connections\n'));
