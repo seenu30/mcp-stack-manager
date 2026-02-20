@@ -92,6 +92,7 @@ mcp-stack doctor
 
 | Stack | Description | MCPs |
 |-------|-------------|------|
+| `fullstack` | Full-stack development | supabase, vercel, github, context7, playwright |
 | `saas-ts` | SaaS stack for TypeScript projects | supabase, vercel, github |
 | `automation` | Browser automation stack | playwright, puppeteer, chrome-devtools |
 | `ai-builder` | AI builder stack | context7, supabase, vercel |

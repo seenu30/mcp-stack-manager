@@ -1,0 +1,9 @@
+{
+  "name": "fullstack",
+  "description": "Full-stack development with database, deployment, version control, docs, and browser automation",
+  "mcps": ["supabase", "vercel", "github", "context7", "playwright"],
+  "detection": {
+    "files": ["next.config.js", "next.config.ts", "supabase/config.toml", "playwright.config.ts"],
+    "dependencies": ["@supabase/supabase-js", "next", "playwright", "@playwright/test"]
+  }
+}
