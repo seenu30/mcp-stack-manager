@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import chalk from 'chalk';
 import { init } from './commands/init.js';
 import { add, addMultiple } from './commands/add.js';
+import { remove, removeAll } from './commands/remove.js';
 import { list } from './commands/list.js';
 import { detect } from './commands/detect.js';
 import { doctor } from './commands/doctor.js';
@@ -37,6 +38,20 @@ program
       await add(mcps[0], options);
     } else {
       await addMultiple(mcps, options);
+    }
+  });
+
+// remove command
+program
+  .command('remove [mcp]')
+  .description('Remove MCP(s) from the configuration')
+  .option('-a, --all', 'Remove all configured MCPs')
+  .option('-f, --force', 'Skip confirmation prompt')
+  .action(async (mcp: string | undefined, options: { all?: boolean; force?: boolean }) => {
+    if (options.all) {
+      await removeAll(options);
+    } else {
+      await remove(mcp, options);
     }
   });
 
