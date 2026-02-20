@@ -9,15 +9,15 @@ export async function listStacks(): Promise<void> {
 
   const stackNames = getAllStackNames();
 
-  for (const name of stackNames) {
+  stackNames.forEach((name, index) => {
     const stack = getStack(name);
     if (stack) {
-      console.log(chalk.cyan(`  ${name}`));
-      console.log(chalk.gray(`    ${stack.description}`));
-      console.log(chalk.gray(`    MCPs: ${stack.mcps.join(', ')}`));
+      console.log(chalk.cyan(`  ${index + 1}. ${name}`));
+      console.log(chalk.gray(`     ${stack.description}`));
+      console.log(chalk.gray(`     MCPs: ${stack.mcps.join(', ')}`));
       console.log();
     }
-  }
+  });
 }
 
 export async function listMcps(): Promise<void> {
@@ -25,35 +25,35 @@ export async function listMcps(): Promise<void> {
 
   const mcpNames = getAllMcpNames();
 
-  for (const name of mcpNames) {
+  mcpNames.forEach((name, index) => {
     const mcp = getMcp(name);
     if (mcp) {
-      console.log(chalk.cyan(`  ${name}`));
-      console.log(chalk.gray(`    ${mcp.description}`));
+      console.log(chalk.cyan(`  ${index + 1}. ${name}`));
+      console.log(chalk.gray(`     ${mcp.description}`));
 
       // Show required env vars
       if (mcp.requiredEnv?.length) {
-        console.log(chalk.yellow(`    credentials: ${mcp.requiredEnv.join(', ')}`));
+        console.log(chalk.yellow(`     credentials: ${mcp.requiredEnv.join(', ')}`));
       }
 
       // Show optional env vars
       if (mcp.optionalEnv?.length) {
-        console.log(chalk.blue(`    optional: ${mcp.optionalEnv.join(', ')}`));
+        console.log(chalk.blue(`     optional: ${mcp.optionalEnv.join(', ')}`));
       }
 
       // Show browser auth requirement
       if (mcp.setupHint) {
-        console.log(chalk.magenta(`    auth: browser (via /mcp in Claude Code)`));
+        console.log(chalk.magenta(`     auth: browser (via /mcp in Claude Code)`));
       }
 
       // Show no credentials needed for simple MCPs
       if (!mcp.requiredEnv?.length && !mcp.optionalEnv?.length && !mcp.setupHint) {
-        console.log(chalk.green(`    no credentials required`));
+        console.log(chalk.green(`     no credentials required`));
       }
 
       console.log();
     }
-  }
+  });
 }
 
 export async function listConfigured(): Promise<void> {
@@ -117,33 +117,33 @@ export async function browseStacks(): Promise<void> {
   console.log(chalk.gray(`${stack.description}\n`));
   console.log(chalk.bold('MCPs in this stack:\n'));
 
-  for (const mcpName of stack.mcps) {
+  stack.mcps.forEach((mcpName, index) => {
     const mcp = getMcp(mcpName);
     if (mcp) {
-      console.log(chalk.cyan(`  ${mcpName}`));
-      console.log(chalk.gray(`    ${mcp.description}`));
+      console.log(chalk.cyan(`  ${index + 1}. ${mcpName}`));
+      console.log(chalk.gray(`     ${mcp.description}`));
 
       // Show required env vars
       if (mcp.requiredEnv?.length) {
-        console.log(chalk.yellow(`    credentials: ${mcp.requiredEnv.join(', ')}`));
+        console.log(chalk.yellow(`     credentials: ${mcp.requiredEnv.join(', ')}`));
       }
 
       // Show optional env vars
       if (mcp.optionalEnv?.length) {
-        console.log(chalk.blue(`    optional: ${mcp.optionalEnv.join(', ')}`));
+        console.log(chalk.blue(`     optional: ${mcp.optionalEnv.join(', ')}`));
       }
 
       // Show browser auth requirement
       if (mcp.setupHint) {
-        console.log(chalk.magenta(`    auth: browser (via /mcp in Claude Code)`));
+        console.log(chalk.magenta(`     auth: browser (via /mcp in Claude Code)`));
       }
 
       // Show no credentials needed for simple MCPs
       if (!mcp.requiredEnv?.length && !mcp.optionalEnv?.length && !mcp.setupHint) {
-        console.log(chalk.green(`    no credentials required`));
+        console.log(chalk.green(`     no credentials required`));
       }
 
       console.log();
     }
-  }
+  });
 }

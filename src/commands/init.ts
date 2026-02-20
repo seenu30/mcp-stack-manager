@@ -22,12 +22,12 @@ async function selectStack(): Promise<string | null> {
       name: 'selection',
       message: 'Select a stack template:',
       choices: [
-        ...stacks.map((stack) => ({
-          name: `${stack.name} - ${stack.description}`,
+        ...stacks.map((stack, index) => ({
+          name: `${index + 1}. ${stack.name}\n     ${chalk.gray(stack.description)}`,
           value: stack.name,
         })),
         new inquirer.Separator(),
-        { name: 'Custom (select individual MCPs)', value: '__custom__' },
+        { name: `${stacks.length + 1}. Custom\n     ${chalk.gray('Select individual MCPs')}`, value: '__custom__' },
       ],
     },
   ]);
@@ -43,10 +43,10 @@ async function selectMcps(): Promise<string[]> {
       type: 'checkbox',
       name: 'selected',
       message: 'Select MCPs to add:',
-      choices: mcpNames.map((name) => {
+      choices: mcpNames.map((name, index) => {
         const mcp = getMcp(name);
         return {
-          name: `${name} - ${mcp?.description || ''}`,
+          name: `${index + 1}. ${name}\n      ${chalk.gray(mcp?.description || '')}`,
           value: name,
         };
       }),
