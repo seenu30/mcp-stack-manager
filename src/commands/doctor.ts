@@ -42,33 +42,63 @@ export async function doctor(): Promise<void> {
       continue;
     }
 
-    // Check 2: Environment variables
+    // Check 2: Environment variables (required)
     if (mcp.requiredEnv && mcp.requiredEnv.length > 0) {
       const { missing, present } = checkRequiredEnv(mcp.requiredEnv);
 
       if (missing.length > 0) {
         result.status = 'error';
         result.checks.push({
-          name: 'Environment variables',
+          name: 'Credentials',
           passed: false,
           message: `Missing: ${missing.join(', ')}`,
         });
       } else {
         result.checks.push({
-          name: 'Environment variables',
+          name: 'Credentials',
           passed: true,
-          message: `All required variables set (${present.join(', ')})`,
+          message: `All required set (${present.join(', ')})`,
         });
       }
-    } else {
+    } else if (!mcp.setupHint) {
       result.checks.push({
-        name: 'Environment variables',
+        name: 'Credentials',
         passed: true,
-        message: 'No environment variables required',
+        message: 'No credentials required',
       });
     }
 
-    // Check 3: Validation (connection test)
+    // Check 3: Browser authentication
+    if (mcp.setupHint) {
+      result.checks.push({
+        name: 'Browser auth',
+        passed: true,
+        message: 'Required (run /mcp in Claude Code to authenticate)',
+      });
+    }
+
+    // Check 4: Optional environment variables
+    if (mcp.optionalEnv && mcp.optionalEnv.length > 0) {
+      const configured = mcp.optionalEnv.filter(v => process.env[v]);
+      const notConfigured = mcp.optionalEnv.filter(v => !process.env[v]);
+
+      if (configured.length > 0) {
+        result.checks.push({
+          name: 'Optional',
+          passed: true,
+          message: `${configured.join(', ')} (configured)`,
+        });
+      }
+      if (notConfigured.length > 0) {
+        result.checks.push({
+          name: 'Optional',
+          passed: true,
+          message: `${notConfigured.join(', ')} (not set)`,
+        });
+      }
+    }
+
+    // Check 5: Validation (connection test)
     if (mcp.validate) {
       const spinner = ora(`  Validating ${mcpName}...`).start();
       try {
