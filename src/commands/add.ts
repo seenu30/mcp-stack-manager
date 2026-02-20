@@ -102,6 +102,13 @@ export async function addInteractive(options: AddOptions = {}): Promise<void> {
           value: name,
         };
       }),
+      theme: {
+        icon: {
+          checked: '[✓]',
+          unchecked: '[ ]',
+          cursor: '→',
+        },
+      },
     },
   ]);
 
