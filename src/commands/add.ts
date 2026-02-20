@@ -9,7 +9,6 @@ import { MCPDefinition } from '../types/index.js';
 
 interface AddOptions {
   force?: boolean;
-  skipPrompts?: boolean;
 }
 
 /**
@@ -221,10 +220,10 @@ export async function add(mcpName: string, options: AddOptions = {}): Promise<vo
     }
   }
 
-  // Prompt for credentials (or skip if --skip-prompts)
+  // Prompt for credentials if needed
   let userValues: Record<string, string> = {};
 
-  if (!options.skipPrompts && ((mcp.requiredEnv && mcp.requiredEnv.length > 0) || (mcp.optionalEnv && mcp.optionalEnv.length > 0))) {
+  if ((mcp.requiredEnv && mcp.requiredEnv.length > 0) || (mcp.optionalEnv && mcp.optionalEnv.length > 0)) {
     userValues = await promptForCredentials(mcp);
   }
 
@@ -260,7 +259,7 @@ export async function addMultiple(mcpNames: string[], options: AddOptions = {}):
     const mcp = getMcp(name);
     if (!mcp) continue;
 
-    if (!options.skipPrompts && (mcp.requiredEnv?.length || mcp.optionalEnv?.length)) {
+    if (mcp.requiredEnv?.length || mcp.optionalEnv?.length) {
       const values = await promptForCredentials(mcp);
       Object.assign(allValues, values);
     }

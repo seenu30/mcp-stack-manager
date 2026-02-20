@@ -11,7 +11,6 @@ import { MCPConfigFile } from '../types/index.js';
 interface InitOptions {
   detect?: boolean;
   force?: boolean;
-  skipPrompts?: boolean;
 }
 
 async function selectStack(): Promise<string | null> {
@@ -238,10 +237,7 @@ export async function init(stackName?: string, options: InitOptions = {}): Promi
   }
 
   // Prompt for credentials
-  let userValues: Record<string, string> = {};
-  if (!options.skipPrompts) {
-    userValues = await promptForAllCredentials(mcpsToAdd);
-  }
+  const userValues = await promptForAllCredentials(mcpsToAdd);
 
   // Build the config
   const spinner = ora('Writing .mcp.json...').start();
