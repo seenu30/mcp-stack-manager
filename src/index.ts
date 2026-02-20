@@ -3,7 +3,7 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { init } from './commands/init.js';
-import { add, addMultiple } from './commands/add.js';
+import { add, addMultiple, addInteractive } from './commands/add.js';
 import { remove, removeAll, removeStack } from './commands/remove.js';
 import { list } from './commands/list.js';
 import { detect } from './commands/detect.js';
@@ -29,12 +29,14 @@ program
 
 // add command
 program
-  .command('add <mcp...>')
+  .command('add [mcp...]')
   .description('Add MCP(s) to the configuration')
   .option('-f, --force', 'Overwrite if already configured')
   .option('-s, --skip-prompts', 'Skip credential prompts (use env vars only)')
   .action(async (mcps: string[], options: { force?: boolean; skipPrompts?: boolean }) => {
-    if (mcps.length === 1) {
+    if (!mcps || mcps.length === 0) {
+      await addInteractive(options);
+    } else if (mcps.length === 1) {
       await add(mcps[0], options);
     } else {
       await addMultiple(mcps, options);

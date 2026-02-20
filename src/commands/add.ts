@@ -72,6 +72,51 @@ async function promptForCredentials(mcp: MCPDefinition): Promise<Record<string, 
   return values;
 }
 
+/**
+ * Interactive MCP selection when no MCP name is provided
+ */
+export async function addInteractive(options: AddOptions = {}): Promise<void> {
+  const allMcps = getAllMcpNames();
+  const configured = await getConfiguredMcps();
+
+  // Filter out already configured MCPs unless --force
+  const availableMcps = options.force
+    ? allMcps
+    : allMcps.filter(name => !configured.includes(name));
+
+  if (availableMcps.length === 0) {
+    console.log(chalk.yellow('\nAll available MCPs are already configured.'));
+    console.log(chalk.gray('Use --force to reconfigure existing MCPs.\n'));
+    return;
+  }
+
+  const { selected } = await inquirer.prompt([
+    {
+      type: 'checkbox',
+      name: 'selected',
+      message: 'Select MCPs to add:',
+      choices: availableMcps.map(name => {
+        const mcp = getMcp(name);
+        return {
+          name: `${name} - ${mcp?.description || ''}`,
+          value: name,
+        };
+      }),
+    },
+  ]);
+
+  if (selected.length === 0) {
+    console.log(chalk.gray('\nNo MCPs selected.\n'));
+    return;
+  }
+
+  if (selected.length === 1) {
+    await add(selected[0], options);
+  } else {
+    await addMultiple(selected, options);
+  }
+}
+
 export async function add(mcpName: string, options: AddOptions = {}): Promise<void> {
   const mcp = getMcp(mcpName);
 
