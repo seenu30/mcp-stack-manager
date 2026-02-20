@@ -3,7 +3,7 @@ import ora from 'ora';
 import inquirer from 'inquirer';
 import { getMcp, buildMcpConfig, getAllMcpNames } from '../mcps/index.js';
 import { addMcpToConfig, getConfiguredMcps } from '../utils/config.js';
-import { checkRequiredEnv } from '../utils/env.js';
+import { maskValue } from '../utils/env.js';
 import { MCPDefinition } from '../types/index.js';
 
 interface AddOptions {
@@ -12,43 +12,61 @@ interface AddOptions {
 }
 
 /**
- * Prompt user for required credentials
+ * Prompt user for required credentials with hints and override option
  */
 async function promptForCredentials(mcp: MCPDefinition): Promise<Record<string, string>> {
   const values: Record<string, string> = {};
 
   if (!mcp.requiredEnv?.length) return values;
 
-  // Check which are already set in environment
-  const { missing, present } = checkRequiredEnv(mcp.requiredEnv);
+  console.log(chalk.cyan(`\nConfigure ${mcp.name}:\n`));
 
-  // Use existing env values
-  for (const envVar of present) {
-    values[envVar] = process.env[envVar]!;
-  }
+  for (const envVar of mcp.requiredEnv) {
+    const hint = mcp.envHints?.[envVar];
+    const existingValue = process.env[envVar];
+    const isSecret = envVar.includes('TOKEN') || envVar.includes('KEY') || envVar.includes('SECRET') || envVar.includes('PASSWORD');
 
-  if (present.length > 0) {
-    console.log(chalk.green(`✓ Found in environment: ${present.join(', ')}`));
-  }
+    // Show variable name
+    console.log(chalk.white.bold(`  ${envVar}`));
 
-  // Prompt for missing values
-  if (missing.length > 0) {
-    console.log(chalk.cyan(`\nConfigure ${mcp.name}:\n`));
+    // Show hint if available
+    if (hint) {
+      console.log(chalk.gray(`  Hint: ${hint}`));
+    }
 
-    for (const envVar of missing) {
-      const isSecret = envVar.includes('TOKEN') || envVar.includes('KEY') || envVar.includes('SECRET') || envVar.includes('PASSWORD');
+    if (existingValue) {
+      // Show masked existing value and ask to use or override
+      const masked = maskValue(existingValue);
+      console.log(chalk.green(`  Found in environment: ${masked}`));
 
-      const { value } = await inquirer.prompt([
+      const { useExisting } = await inquirer.prompt([
         {
-          type: isSecret ? 'password' : 'input',
-          name: 'value',
-          message: `${envVar}:`,
-          validate: (input: string) => input.length > 0 || 'Value is required',
+          type: 'confirm',
+          name: 'useExisting',
+          message: 'Use this value for this project?',
+          default: true,
         },
       ]);
 
-      values[envVar] = value;
+      if (useExisting) {
+        values[envVar] = existingValue;
+        console.log();
+        continue;
+      }
     }
+
+    // Prompt for new value
+    const { value } = await inquirer.prompt([
+      {
+        type: isSecret ? 'password' : 'input',
+        name: 'value',
+        message: 'Enter value:',
+        validate: (input: string) => input.length > 0 || 'Value is required',
+      },
+    ]);
+
+    values[envVar] = value;
+    console.log();
   }
 
   return values;

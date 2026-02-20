@@ -12,6 +12,9 @@ export const github: MCPDefinition = {
     },
   },
   requiredEnv: ['GITHUB_TOKEN'],
+  envHints: {
+    GITHUB_TOKEN: 'https://github.com/settings/tokens → Generate new token (classic) → Select scopes: repo, read:org',
+  },
   validate: async (): Promise<ValidationResult> => {
     const token = getEnv('GITHUB_TOKEN');
 

@@ -12,6 +12,10 @@ export const supabase: MCPDefinition = {
     },
   },
   requiredEnv: ['SUPABASE_PROJECT_REF', 'SUPABASE_ACCESS_TOKEN'],
+  envHints: {
+    SUPABASE_PROJECT_REF: 'Supabase Dashboard → Select Project → Project Settings → General → "Reference ID"',
+    SUPABASE_ACCESS_TOKEN: 'https://supabase.com/dashboard/account/tokens → Generate new token',
+  },
   validate: async (): Promise<ValidationResult> => {
     const projectRef = getEnv('SUPABASE_PROJECT_REF');
     const accessToken = getEnv('SUPABASE_ACCESS_TOKEN');

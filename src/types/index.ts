@@ -35,6 +35,7 @@ export interface MCPDefinition {
   config: MCPServerConfig;
   requiredEnv?: string[];
   optionalEnv?: string[];
+  envHints?: Record<string, string>; // Hints for where to find each credential
   validate?: () => Promise<ValidationResult>;
 }
 
