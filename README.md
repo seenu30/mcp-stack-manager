@@ -6,7 +6,6 @@ A CLI tool for managing MCP (Model Context Protocol) server configurations in Cl
 
 - **Stack Templates** - Pre-configured MCP bundles for common workflows (SaaS, automation, AI apps)
 - **Interactive Setup** - Guided credential prompts with hints for where to find each value
-- **Project Detection** - Auto-detect project type and suggest relevant MCPs (beta)
 - **Health Checks** - Validate MCP configurations and test connections
 - **Simple CLI** - Add, remove, and manage MCPs with intuitive commands
 
@@ -82,13 +81,6 @@ Interactive stack browser - select a stack to view its MCPs.
 mcp-stack stacks
 ```
 
-### `detect` (beta)
-Detect project type and suggest MCPs based on your codebase.
-
-```bash
-mcp-stack detect
-```
-
 ### `doctor`
 Check MCP configurations and validate connections.
 
@@ -153,6 +145,22 @@ After configuration, verify your MCPs are working:
 1. **In Claude Code CLI**: Run `claude mcp list`
 2. **In Claude Code IDE**: Type `/mcp` to see MCP status
 3. **With mcp-stack**: Run `mcp-stack doctor`
+
+## Beta Features
+
+These features are experimental and may change in future versions.
+
+### `detect`
+Auto-detect project type and suggest MCPs based on your codebase.
+
+```bash
+mcp-stack detect
+```
+
+Also available as:
+```bash
+mcp-stack init --detect
+```
 
 ## Contributing
 
