@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
+import checkbox from '@inquirer/checkbox';
 import { getMcp, buildMcpConfig, getAllMcpNames } from '../mcps/index.js';
 import { addMcpToConfig, getConfiguredMcps } from '../utils/config.js';
 import { maskValue } from '../utils/env.js';
@@ -90,27 +91,23 @@ export async function addInteractive(options: AddOptions = {}): Promise<void> {
     return;
   }
 
-  const { selected } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selected',
-      message: 'Select MCPs to add:',
-      choices: availableMcps.map(name => {
-        const mcp = getMcp(name);
-        return {
-          name: `${name} - ${mcp?.description || ''}`,
-          value: name,
-        };
-      }),
-      theme: {
-        icon: {
-          checked: '[✓]',
-          unchecked: '[ ]',
-          cursor: '→',
-        },
+  const selected = await checkbox({
+    message: 'Select MCPs to add:',
+    choices: availableMcps.map(name => {
+      const mcp = getMcp(name);
+      return {
+        name: `${name} - ${mcp?.description || ''}`,
+        value: name,
+      };
+    }),
+    theme: {
+      icon: {
+        checked: '[✓]',
+        unchecked: '[ ]',
+        cursor: '→',
       },
     },
-  ]);
+  });
 
   if (selected.length === 0) {
     console.log(chalk.gray('\nNo MCPs selected.\n'));
