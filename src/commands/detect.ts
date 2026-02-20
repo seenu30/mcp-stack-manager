@@ -3,7 +3,7 @@ import ora from 'ora';
 import { detectProjectMcps, suggestStack } from '../utils/detection.js';
 
 export async function detect(): Promise<void> {
-  console.log(chalk.bold('\nMCP Stack Manager - Project Detection\n'));
+  console.log(chalk.bold('\nMCP Stack Manager - Project Detection') + chalk.yellow(' (beta)') + '\n');
 
   const spinner = ora('Scanning project...').start();
   const { detected, suggested } = await detectProjectMcps();
