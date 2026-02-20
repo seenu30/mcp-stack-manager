@@ -6,7 +6,7 @@ A CLI tool for managing MCP (Model Context Protocol) server configurations in Cl
 
 - **Stack Templates** - Pre-configured MCP bundles for common workflows (SaaS, automation, AI apps)
 - **Interactive Setup** - Guided credential prompts with hints for where to find each value
-- **Project Detection** - Auto-detect project type and suggest relevant MCPs
+- **Project Detection** - Auto-detect project type and suggest relevant MCPs (beta)
 - **Health Checks** - Validate MCP configurations and test connections
 - **Simple CLI** - Add, remove, and manage MCPs with intuitive commands
 
@@ -82,7 +82,7 @@ Interactive stack browser - select a stack to view its MCPs.
 mcp-stack stacks
 ```
 
-### `detect`
+### `detect` (beta)
 Detect project type and suggest MCPs based on your codebase.
 
 ```bash

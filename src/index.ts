@@ -10,11 +10,12 @@ import { detect } from './commands/detect.js';
 import { doctor } from './commands/doctor.js';
 
 const program = new Command();
+const VERSION = '0.1.3';
 
 program
   .name('mcp-stack')
   .description('MCP Stack Manager for Claude Code - manage MCP server configurations')
-  .version('0.1.2');
+  .version(VERSION);
 
 // init command
 program
@@ -89,7 +90,7 @@ program
 // detect command
 program
   .command('detect')
-  .description('Detect project type and suggest MCPs')
+  .description('Detect project type and suggest MCPs (beta)')
   .action(async () => {
     await detect();
   });
@@ -103,7 +104,7 @@ program
   });
 
 // Add header
-console.log(chalk.bold.cyan('\n  MCP Stack Manager v0.1.0\n'));
+console.log(chalk.bold.cyan(`\n  MCP Stack Manager v${VERSION}\n`));
 
 // Parse and run
 program.parse();
