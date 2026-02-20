@@ -36,7 +36,7 @@ export const supabase: MCPDefinition = {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { name?: string };
         return {
           valid: true,
           message: `Connected to project: ${data.name || projectRef}`,

@@ -31,7 +31,7 @@ export const github: MCPDefinition = {
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = (await response.json()) as { login: string };
         return {
           valid: true,
           message: `Authenticated as: ${data.login}`,
