@@ -27,7 +27,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/seenu30/mcp-stack-manager.git"
+    "url": "git+https://github.com/seenu30/mcp-stack-manager.git"
   },
   "homepage": "https://github.com/seenu30/mcp-stack-manager#readme",
   "bugs": {
