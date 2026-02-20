@@ -100,10 +100,10 @@ export async function browseStacks(): Promise<void> {
       type: 'list',
       name: 'selectedStack',
       message: 'Select a stack to view MCPs:',
-      choices: stackNames.map(name => {
+      choices: stackNames.map((name, index) => {
         const stack = getStack(name);
         return {
-          name: `${name} - ${stack?.description || ''}`,
+          name: `${index + 1}. ${name} - ${stack?.description || ''}`,
           value: name,
         };
       }),
