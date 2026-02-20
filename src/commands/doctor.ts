@@ -71,9 +71,9 @@ export async function doctor(): Promise<void> {
     // Check 3: Browser authentication
     if (mcp.setupHint) {
       result.checks.push({
-        name: 'Browser auth',
+        name: 'Auth status',
         passed: true,
-        message: 'Run /mcp in Claude Code to authenticate',
+        message: 'Check in Claude Code (/mcp)',
       });
     }
 
