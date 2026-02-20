@@ -27,13 +27,29 @@ export async function listMcps(): Promise<void> {
   for (const name of mcpNames) {
     const mcp = getMcp(name);
     if (mcp) {
-      const envInfo = mcp.requiredEnv?.length
-        ? chalk.yellow(` (requires: ${mcp.requiredEnv.join(', ')})`)
-        : chalk.green(' (no env required)');
-
       console.log(chalk.cyan(`  ${name}`));
       console.log(chalk.gray(`    ${mcp.description}`));
-      console.log(`    ${envInfo}`);
+
+      // Show required env vars
+      if (mcp.requiredEnv?.length) {
+        console.log(chalk.yellow(`    credentials: ${mcp.requiredEnv.join(', ')}`));
+      }
+
+      // Show optional env vars
+      if (mcp.optionalEnv?.length) {
+        console.log(chalk.blue(`    optional: ${mcp.optionalEnv.join(', ')}`));
+      }
+
+      // Show browser auth requirement
+      if (mcp.setupHint) {
+        console.log(chalk.magenta(`    auth: browser (via /mcp in Claude Code)`));
+      }
+
+      // Show no credentials needed for simple MCPs
+      if (!mcp.requiredEnv?.length && !mcp.optionalEnv?.length && !mcp.setupHint) {
+        console.log(chalk.green(`    no credentials required`));
+      }
+
       console.log();
     }
   }
