@@ -37,6 +37,36 @@ function hasConfiguredCredentials(mcpConfig: MCPServerConfig): boolean {
   return false;
 }
 
+/**
+ * Set environment variables from config values for validation
+ * This allows validate functions to read credentials from config
+ */
+function setEnvFromConfig(mcpConfig: MCPServerConfig): void {
+  // Extract from env object (e.g., GITHUB_PERSONAL_ACCESS_TOKEN, SUPABASE_ACCESS_TOKEN)
+  if (mcpConfig.env) {
+    for (const [key, value] of Object.entries(mcpConfig.env)) {
+      if (value && !value.includes('${')) {
+        process.env[key] = value;
+        // Also set common aliases
+        if (key === 'GITHUB_PERSONAL_ACCESS_TOKEN') {
+          process.env['GITHUB_TOKEN'] = value;
+        }
+      }
+    }
+  }
+  // Extract from args (e.g., --project-ref=xxx for Supabase)
+  if (mcpConfig.args) {
+    for (const arg of mcpConfig.args) {
+      const match = arg.match(/^--([^=]+)=(.+)$/);
+      if (match && !match[2].includes('${')) {
+        if (match[1] === 'project-ref') {
+          process.env['SUPABASE_PROJECT_REF'] = match[2];
+        }
+      }
+    }
+  }
+}
+
 export async function doctor(): Promise<void> {
   console.log(chalk.bold('\nMCP Stack Manager - Doctor\n'));
 
@@ -141,6 +171,8 @@ export async function doctor(): Promise<void> {
     if (mcp.validate) {
       const spinner = ora(`  Validating ${mcpName}...`).start();
       try {
+        // Set env vars from config so validate functions can read them
+        setEnvFromConfig(mcpConfig);
         const validationResult = await mcp.validate();
         spinner.stop();
 
