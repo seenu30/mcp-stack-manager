@@ -5,7 +5,7 @@ import chalk from 'chalk';
 import { init } from './commands/init.js';
 import { add, addMultiple, addInteractive } from './commands/add.js';
 import { remove, removeAll, removeStack } from './commands/remove.js';
-import { list } from './commands/list.js';
+import { list, browseStacks } from './commands/list.js';
 import { detect } from './commands/detect.js';
 import { doctor } from './commands/doctor.js';
 
@@ -76,6 +76,14 @@ Types:
   )
   .action(async (type?: string) => {
     await list(type);
+  });
+
+// stacks command
+program
+  .command('stacks')
+  .description('Browse stacks and view MCPs in each stack')
+  .action(async () => {
+    await browseStacks();
   });
 
 // detect command

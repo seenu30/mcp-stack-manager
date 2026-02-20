@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import inquirer from 'inquirer';
 import { getAllStackNames, getStack } from '../stacks/index.js';
 import { getAllMcpNames, getMcp } from '../mcps/index.js';
 import { getConfiguredMcps } from '../utils/config.js';
@@ -85,5 +86,64 @@ export async function list(type?: string): Promise<void> {
     await listStacks();
     await listMcps();
     await listConfigured();
+  }
+}
+
+/**
+ * Interactive stack browser - select a stack to see its MCPs
+ */
+export async function browseStacks(): Promise<void> {
+  const stackNames = getAllStackNames();
+
+  const { selectedStack } = await inquirer.prompt([
+    {
+      type: 'list',
+      name: 'selectedStack',
+      message: 'Select a stack to view MCPs:',
+      choices: stackNames.map(name => {
+        const stack = getStack(name);
+        return {
+          name: `${name} - ${stack?.description || ''}`,
+          value: name,
+        };
+      }),
+    },
+  ]);
+
+  const stack = getStack(selectedStack);
+  if (!stack) return;
+
+  console.log(chalk.bold(`\n${stack.name}`));
+  console.log(chalk.gray(`${stack.description}\n`));
+  console.log(chalk.bold('MCPs in this stack:\n'));
+
+  for (const mcpName of stack.mcps) {
+    const mcp = getMcp(mcpName);
+    if (mcp) {
+      console.log(chalk.cyan(`  ${mcpName}`));
+      console.log(chalk.gray(`    ${mcp.description}`));
+
+      // Show required env vars
+      if (mcp.requiredEnv?.length) {
+        console.log(chalk.yellow(`    credentials: ${mcp.requiredEnv.join(', ')}`));
+      }
+
+      // Show optional env vars
+      if (mcp.optionalEnv?.length) {
+        console.log(chalk.blue(`    optional: ${mcp.optionalEnv.join(', ')}`));
+      }
+
+      // Show browser auth requirement
+      if (mcp.setupHint) {
+        console.log(chalk.magenta(`    auth: browser (via /mcp in Claude Code)`));
+      }
+
+      // Show no credentials needed for simple MCPs
+      if (!mcp.requiredEnv?.length && !mcp.optionalEnv?.length && !mcp.setupHint) {
+        console.log(chalk.green(`    no credentials required`));
+      }
+
+      console.log();
+    }
   }
 }
