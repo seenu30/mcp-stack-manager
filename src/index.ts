@@ -12,7 +12,7 @@ import { update } from './commands/update.js';
 import { completion } from './commands/completion.js';
 
 const program = new Command();
-const VERSION = '0.1.3';
+const VERSION = '0.1.4';
 
 program
   .name('mcp-stack')
